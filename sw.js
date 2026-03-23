@@ -1,15 +1,7 @@
 const CACHE = 'catch-log-v1';
-const ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  'https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=Inconsolata:wght@400;500;600&display=swap'
-];
 
 self.addEventListener('install', e => {
-  e.waitUntil(
-    caches.open(CACHE).then(cache => cache.addAll(ASSETS)).then(() => self.skipWaiting())
-  );
+  e.waitUntil(self.skipWaiting());
 });
 
 self.addEventListener('activate', e => {
@@ -22,18 +14,18 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   // Always go network-first for weather API calls
-  if (e.request.url.includes('open-meteo.com')) {
-    e.respondWith(fetch(e.request).catch(() => new Response('{}', {headers:{'Content-Type':'application/json'}})));
+  if (e.request.url.includes('open-meteo.com') || e.request.url.includes('fonts.googleapis.com')) {
+    e.respondWith(fetch(e.request).catch(() => new Response('')));
     return;
   }
-  // Cache-first for everything else
+  // Network-first for everything else, fall back to cache
   e.respondWith(
-    caches.match(e.request).then(cached => cached || fetch(e.request).then(response => {
+    fetch(e.request).then(response => {
       if (response.ok) {
         const clone = response.clone();
         caches.open(CACHE).then(cache => cache.put(e.request, clone));
       }
       return response;
-    }))
+    }).catch(() => caches.match(e.request))
   );
 });

@@ -364,7 +364,7 @@ function toast(msg){const el=document.getElementById('toast');el.textContent=msg
 // Register service worker
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('/sw.js').catch(err=>console.log('SW failed:',err));
+    navigator.serviceWorker.register('./sw.js').catch(err=>console.log('SW failed:',err));
   });
 }
 
