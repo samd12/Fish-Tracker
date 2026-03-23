@@ -6,7 +6,10 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Catch Log">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0a1628">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
 <title>Catch Log</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=Inconsolata:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -255,7 +258,7 @@ const LAKES={
   misc:     {name:'Misc',           structs:['Shoreline Drop','Point','Flat','Cove','Dock / Pier','Vegetation Edge','Deep Hole','Open Water','Other']}
 };
 
-let allData={}, activeLake='penbryn', miscCustomName='', currentGPS=null, currentWeather=null;
+let allData={},activeLake='penbryn',miscCustomName='',currentGPS=null,currentWeather=null;
 
 function loadAll(){try{allData=JSON.parse(localStorage.getItem(STORAGE_KEY))||{};}catch(e){allData={};}Object.keys(LAKES).forEach(k=>{if(!allData[k])allData[k]=[];});}
 function saveAll(){localStorage.setItem(STORAGE_KEY,JSON.stringify(allData));}
@@ -303,22 +306,7 @@ function saveCatch(){
   const species=document.getElementById('f-species').value;
   if(!species){toast('Select a species first');return;}
   const now=new Date();
-  const entry={
-    id:Date.now(),lake:activeLake,lake_name:lakeName(),
-    timestamp:now.toISOString(),
-    time_display:now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}),
-    date_display:now.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),
-    species,
-    length:document.getElementById('f-length').value||null,
-    weight:document.getElementById('f-weight').value||null,
-    lure_type:document.getElementById('f-lure-type').value||null,
-    lure_color:document.getElementById('f-lure-color').value.trim()||null,
-    depth:document.getElementById('f-depth').value||null,
-    structure:document.getElementById('f-structure').value||null,
-    technique:document.getElementById('f-technique').value.trim()||null,
-    notes:document.getElementById('f-notes').value.trim()||null,
-    gps:currentGPS,weather:currentWeather
-  };
+  const entry={id:Date.now(),lake:activeLake,lake_name:lakeName(),timestamp:now.toISOString(),time_display:now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}),date_display:now.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),species,length:document.getElementById('f-length').value||null,weight:document.getElementById('f-weight').value||null,lure_type:document.getElementById('f-lure-type').value||null,lure_color:document.getElementById('f-lure-color').value.trim()||null,depth:document.getElementById('f-depth').value||null,structure:document.getElementById('f-structure').value||null,technique:document.getElementById('f-technique').value.trim()||null,notes:document.getElementById('f-notes').value.trim()||null,gps:currentGPS,weather:currentWeather};
   allData[activeLake].unshift(entry);saveAll();
   ['f-species','f-lure-type','f-structure'].forEach(id=>document.getElementById(id).value='');
   ['f-length','f-weight','f-lure-color','f-depth','f-technique','f-notes'].forEach(id=>document.getElementById(id).value='');
@@ -333,46 +321,12 @@ function renderCatches(){
   el.innerHTML=catches.map((c,i)=>{
     const num=catches.length-i;
     const lure=[c.lure_type,c.lure_color].filter(Boolean).join(' — ');
-    return `<div class="catch-card">
-      <div class="catch-header" onclick="toggleCatch(${c.id})">
-        <div class="catch-num">${num}</div>
-        <div class="catch-main">
-          <div class="species">${c.species}</div>
-          <div class="meta">${c.date_display} &bull; ${c.time_display}${c.structure?' &bull; '+c.structure:''}</div>
-        </div>
-        <div class="catch-size">
-          <div class="len">${c.length?c.length+'"':'—'}</div>
-          <div class="wt">${c.weight?c.weight+' lbs':'—'}</div>
-        </div>
-      </div>
-      <div class="catch-details" id="cd-${c.id}">
-        <div class="detail-grid">
-          ${c.lure_type?`<div class="detail-item"><div class="dlabel">Lure</div><div class="dval">${lure}</div></div>`:''}
-          ${c.depth?`<div class="detail-item"><div class="dlabel">Depth</div><div class="dval">${c.depth} ft</div></div>`:''}
-          ${c.technique?`<div class="detail-item"><div class="dlabel">Technique</div><div class="dval">${c.technique}</div></div>`:''}
-          ${c.weather?`<div class="detail-item"><div class="dlabel">Temp</div><div class="dval">${c.weather.temp}°F (feels ${c.weather.feels}°F)</div></div>`:''}
-          ${c.weather?`<div class="detail-item"><div class="dlabel">Wind</div><div class="dval">${c.weather.wind_speed}mph ${c.weather.wind_dir}</div></div>`:''}
-          ${c.weather?`<div class="detail-item"><div class="dlabel">Sky</div><div class="dval">${c.weather.sky}</div></div>`:''}
-          ${c.gps?`<div class="detail-item"><div class="dlabel">GPS</div><div class="dval">${c.gps.lat}, ${c.gps.lon}</div></div>`:''}
-        </div>
-        ${c.notes?`<div class="detail-note">"${c.notes}"</div>`:''}
-        <div class="catch-actions"><button class="btn-danger" onclick="confirmDelete(${c.id})">Delete</button></div>
-      </div>
-    </div>`;
+    return `<div class="catch-card"><div class="catch-header" onclick="toggleCatch(${c.id})"><div class="catch-num">${num}</div><div class="catch-main"><div class="species">${c.species}</div><div class="meta">${c.date_display} &bull; ${c.time_display}${c.structure?' &bull; '+c.structure:''}</div></div><div class="catch-size"><div class="len">${c.length?c.length+'"':'—'}</div><div class="wt">${c.weight?c.weight+' lbs':'—'}</div></div></div><div class="catch-details" id="cd-${c.id}"><div class="detail-grid">${c.lure_type?`<div class="detail-item"><div class="dlabel">Lure</div><div class="dval">${lure}</div></div>`:''} ${c.depth?`<div class="detail-item"><div class="dlabel">Depth</div><div class="dval">${c.depth} ft</div></div>`:''} ${c.technique?`<div class="detail-item"><div class="dlabel">Technique</div><div class="dval">${c.technique}</div></div>`:''} ${c.weather?`<div class="detail-item"><div class="dlabel">Temp</div><div class="dval">${c.weather.temp}°F (feels ${c.weather.feels}°F)</div></div>`:''} ${c.weather?`<div class="detail-item"><div class="dlabel">Wind</div><div class="dval">${c.weather.wind_speed}mph ${c.weather.wind_dir}</div></div>`:''} ${c.weather?`<div class="detail-item"><div class="dlabel">Sky</div><div class="dval">${c.weather.sky}</div></div>`:''} ${c.gps?`<div class="detail-item"><div class="dlabel">GPS</div><div class="dval">${c.gps.lat}, ${c.gps.lon}</div></div>`:''}</div>${c.notes?`<div class="detail-note">"${c.notes}"</div>`:''}<div class="catch-actions"><button class="btn-danger" onclick="confirmDelete(${c.id})">Delete</button></div></div></div>`;
   }).join('');
 }
 function toggleCatch(id){document.getElementById(`cd-${id}`).classList.toggle('open');}
-function confirmDelete(id){
-  document.getElementById('confirm-msg').textContent='Delete this catch? Cannot be undone.';
-  document.getElementById('confirm-ok').onclick=()=>deleteCatch(id);
-  document.getElementById('confirm-modal').classList.add('open');
-}
-function confirmClearAll(){
-  const n=lakeCatches().length;if(!n){toast('No catches to clear');return;}
-  document.getElementById('confirm-msg').textContent=`Delete all ${n} catches from ${lakeName()}?`;
-  document.getElementById('confirm-ok').onclick=()=>{allData[activeLake]=[];saveAll();updateLakeCount();renderCatches();renderStats();closeConfirm();toast('Cleared');};
-  document.getElementById('confirm-modal').classList.add('open');
-}
+function confirmDelete(id){document.getElementById('confirm-msg').textContent='Delete this catch? Cannot be undone.';document.getElementById('confirm-ok').onclick=()=>deleteCatch(id);document.getElementById('confirm-modal').classList.add('open');}
+function confirmClearAll(){const n=lakeCatches().length;if(!n){toast('No catches to clear');return;}document.getElementById('confirm-msg').textContent=`Delete all ${n} catches from ${lakeName()}?`;document.getElementById('confirm-ok').onclick=()=>{allData[activeLake]=[];saveAll();updateLakeCount();renderCatches();renderStats();closeConfirm();toast('Cleared');};document.getElementById('confirm-modal').classList.add('open');}
 function closeConfirm(){document.getElementById('confirm-modal').classList.remove('open');}
 function deleteCatch(id){allData[activeLake]=allData[activeLake].filter(c=>c.id!==id);saveAll();updateLakeCount();renderCatches();renderStats();closeConfirm();toast('Catch deleted');}
 
@@ -385,11 +339,7 @@ function renderStats(){
   const avgLen=wL.length?(wL.reduce((s,c)=>s+parseFloat(c.length),0)/wL.length).toFixed(1):null;
   const bigLen=wL.length?Math.max(...wL.map(c=>parseFloat(c.length))).toFixed(1):null;
   const bigWt=wW.length?Math.max(...wW.map(c=>parseFloat(c.weight))).toFixed(2):null;
-  grid.innerHTML=`
-    <div class="stat-card"><div class="stat-label">Total Catches</div><div class="stat-val">${catches.length}</div></div>
-    <div class="stat-card"><div class="stat-label">Biggest Fish</div><div class="stat-val">${bigLen?bigLen+'"':'—'}</div>${bigWt?`<div class="stat-sub">${bigWt} lbs</div>`:''}</div>
-    <div class="stat-card"><div class="stat-label">Avg Length</div><div class="stat-val">${avgLen?avgLen+'"':'—'}</div></div>
-    <div class="stat-card"><div class="stat-label">Lures Used</div><div class="stat-val">${new Set(catches.map(c=>c.lure_type).filter(Boolean)).size}</div></div>`;
+  grid.innerHTML=`<div class="stat-card"><div class="stat-label">Total Catches</div><div class="stat-val">${catches.length}</div></div><div class="stat-card"><div class="stat-label">Biggest Fish</div><div class="stat-val">${bigLen?bigLen+'"':'—'}</div>${bigWt?`<div class="stat-sub">${bigWt} lbs</div>`:''}</div><div class="stat-card"><div class="stat-label">Avg Length</div><div class="stat-val">${avgLen?avgLen+'"':'—'}</div></div><div class="stat-card"><div class="stat-label">Lures Used</div><div class="stat-val">${new Set(catches.map(c=>c.lure_type).filter(Boolean)).size}</div></div>`;
   const sc={};catches.forEach(c=>{if(c.structure)sc[c.structure]=(sc[c.structure]||0)+1;});
   const spots=Object.entries(sc).sort((a,b)=>b[1]-a[1]).slice(0,5);
   spotsEl.innerHTML=spots.length?spots.map(([k,v])=>`<div class="card-sm" style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:14px">${k}</span><span style="font-family:var(--font-head);font-size:20px;font-weight:700;color:var(--teal)">${v}</span></div>`).join(''):'<div class="empty" style="padding:20px"><p>No structure data yet</p></div>';
@@ -401,36 +351,22 @@ function renderStats(){
 function openExport(){
   const catches=lakeCatches();if(!catches.length){toast('No catches to export');return;}
   document.getElementById('export-title').textContent=`Export — ${lakeName()}`;
-  const lines=catches.map((c,i)=>{
-    const num=catches.length-i;
-    let line=`#${num} — ${c.species} | ${c.date_display} ${c.time_display}`;
-    if(c.length||c.weight)line+=`\n   Size: ${c.length?c.length+'"':'—'} / ${c.weight?c.weight+' lbs':'—'}`;
-    if(c.lure_type)line+=`\n   Lure: ${[c.lure_type,c.lure_color].filter(Boolean).join(' — ')}`;
-    if(c.depth||c.structure)line+=`\n   Location: ${[c.depth?c.depth+'ft':null,c.structure].filter(Boolean).join(' @ ')}`;
-    if(c.technique)line+=`\n   Technique: ${c.technique}`;
-    if(c.weather)line+=`\n   Weather: ${c.weather.temp}°F, ${c.weather.wind_speed}mph ${c.weather.wind_dir}, ${c.weather.sky}, ${c.weather.humidity}% humidity`;
-    if(c.gps)line+=`\n   GPS: ${c.gps.lat}, ${c.gps.lon}`;
-    if(c.notes)line+=`\n   Notes: ${c.notes}`;
-    return line;
-  }).join('\n\n');
+  const lines=catches.map((c,i)=>{const num=catches.length-i;let line=`#${num} — ${c.species} | ${c.date_display} ${c.time_display}`;if(c.length||c.weight)line+=`\n   Size: ${c.length?c.length+'"':'—'} / ${c.weight?c.weight+' lbs':'—'}`;if(c.lure_type)line+=`\n   Lure: ${[c.lure_type,c.lure_color].filter(Boolean).join(' — ')}`;if(c.depth||c.structure)line+=`\n   Location: ${[c.depth?c.depth+'ft':null,c.structure].filter(Boolean).join(' @ ')}`;if(c.technique)line+=`\n   Technique: ${c.technique}`;if(c.weather)line+=`\n   Weather: ${c.weather.temp}°F, ${c.weather.wind_speed}mph ${c.weather.wind_dir}, ${c.weather.sky}, ${c.weather.humidity}% humidity`;if(c.gps)line+=`\n   GPS: ${c.gps.lat}, ${c.gps.lon}`;if(c.notes)line+=`\n   Notes: ${c.notes}`;return line;}).join('\n\n');
   document.getElementById('export-text').value=`${lakeName().toUpperCase()} — CATCH LOG\nExported: ${new Date().toLocaleString()}\nTotal: ${catches.length} catches\n\n`+lines;
   document.getElementById('export-modal').classList.add('open');
 }
 function closeExport(){document.getElementById('export-modal').classList.remove('open');}
-function copyExport(){
-  const el=document.getElementById('export-text');el.select();
-  try{navigator.clipboard.writeText(el.value).then(()=>toast('Copied!')).catch(()=>{document.execCommand('copy');toast('Copied!');});}
-  catch(e){document.execCommand('copy');toast('Copied!');}
-}
+function copyExport(){const el=document.getElementById('export-text');el.select();try{navigator.clipboard.writeText(el.value).then(()=>toast('Copied!')).catch(()=>{document.execCommand('copy');toast('Copied!');});}catch(e){document.execCommand('copy');toast('Copied!');}}
 
-function switchTab(name,btn){
-  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('panel-'+name).classList.add('active');btn.classList.add('active');
-  if(name==='catches')renderCatches();
-  if(name==='stats')renderStats();
-}
+function switchTab(name,btn){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));document.getElementById('panel-'+name).classList.add('active');btn.classList.add('active');if(name==='catches')renderCatches();if(name==='stats')renderStats();}
 function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2200);}
+
+// Register service worker
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('/sw.js').catch(err=>console.log('SW failed:',err));
+  });
+}
 
 loadAll();populateStructures();updateLakeCount();renderCatches();renderStats();fetchAll();
 </script>
